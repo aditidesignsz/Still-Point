@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stillpoint — Breathe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sage: #97b89a;
+    --sage-light: #c8d9c8;
+    --cream: #f0ead8;
+    --gold: #d4b96a;
+    --gold-light: #ede0b0;
+    --mist: #dce8e4;
+    --text-deep: #3a4a3c;
+    --text-mid: #5a7060;
+    --text-soft: #8aaa8c;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    background: #cdd9cb;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .app {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Layered ambient background */
+  .bg-layer {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 30%, rgba(212, 185, 106, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 70% 70%, rgba(151, 184, 154, 0.22) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #d4dfd2 0%, #c2d0c4 50%, #b8cabb 100%);
+    transition: background 4s ease;
+  }
+
+  .bg-layer.exhale-bg {
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 30%, rgba(180, 210, 220, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 70% 70%, rgba(151, 184, 190, 0.22) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #ccd8de 0%, #bccdd4 50%, #b0c4cc 100%);
+  }
+
+  .bg-layer.hold-bg {
+    background:
+      radial-gradient(ellipse 60% 50% at 40% 40%, rgba(212, 185, 106, 0.25) 0%, transparent 60%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, #d8d4c4 0%, #ccc8b8 50%, #c0bdb0 100%);
+  }
+
+  /* Ground glow */
+  .ground-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 200px;
+    background: radial-gradient(ellipse at bottom, rgba(212, 185, 106, 0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ========================
+     HOME SCREEN
+  ======================== */
+  .home-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: opacity 1.2s ease;
+    gap: 0;
+  }
+
+  .home-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .app-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(13px, 2vw, 15px);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.3s forwards;
+  }
+
+  /* Meditation figure */
+  .figure-container {
+    position: relative;
+    width: 240px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease 0.6s forwards;
+  }
+
+  .aura-ring {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(212, 185, 106, 0.35) 0%, rgba(212, 185, 106, 0.12) 50%, transparent 75%);
+    animation: auraPulse 4s ease-in-out infinite;
+  }
+
+  .aura-ring:nth-child(1) {
+    width: 200px; height: 200px;
+    animation-delay: 0s;
+  }
+  .aura-ring:nth-child(2) {
+    width: 160px; height: 160px;
+    background: radial-gradient(ellipse, rgba(200, 217, 200, 0.45) 0%, transparent 70%);
+    animation-delay: 0.8s;
+  }
+
+  @keyframes auraPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+
+  .figure-svg {
+    position: relative;
+    z-index: 2;
+    width: 150px;
+    height: 195px;
+    opacity: 0.92;
+  }
+
+  .tagline {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(18px, 3.5vw, 23px);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-deep);
+    letter-spacing: 0.04em;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.9s forwards;
+  }
+
+  .tagline-sub {
+    font-size: 13px;
+    font-weight: 200;
+    letter-spacing: 0.12em;
+    color: var(--text-soft);
+    margin-bottom: 52px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.1s forwards;
+  }
+
+  .start-btn {
+    display: inline-block;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(90, 112, 96, 0.35);
+    border-radius: 0;
+    padding: 4px 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    transition: all 0.4s ease;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.3s forwards;
+  }
+
+  .start-btn:hover {
+    color: var(--text-deep);
+    border-bottom-color: rgba(90, 112, 96, 0.65);
+  }
+
+  .sound-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 28px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.5s forwards;
+  }
+
+  .sound-chip {
+    background: none;
+    border: none;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    opacity: 0.75;
+  }
+
+  .sound-chip.active {
+    color: var(--text-deep);
+    opacity: 1;
+    border-bottom: 1px solid rgba(90, 112, 96, 0.4);
+  }
+
+  .sound-chip:hover {
+    color: var(--text-deep);
+    opacity: 1;
+  }
+
+  /* ========================
+     MEDITATION SCREEN
+  ======================== */
+  .meditation-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.5s ease;
+  }
+
+  .meditation-screen.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Close button */
+  .close-btn {
+    position: absolute;
+    top: 36px;
+    right: 40px;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+    color: var(--text-deep);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    opacity: 0.75;
+  }
+
+  .close-btn:hover {
+    opacity: 1;
+    background: none;
+  }
+
+  /* Phase label above circle */
+  .phase-label {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(26px, 5vw, 34px);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-mid);
+    letter-spacing: 0.08em;
+    margin-bottom: 36px;
+    min-height: 44px;
+    transition: opacity 0.8s ease;
+    opacity: 0.85;
+  }
+
+  /* Breathing circle */
+  .breath-wrapper {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orbit-glow {
+    position: absolute;
+    border-radius: 50%;
+    transition: transform 0s, opacity 0.5s ease;
+  }
+
+  .orbit-1 {
+    width: 260px; height: 260px;
+    background: radial-gradient(ellipse, rgba(212, 185, 106, 0.2) 0%, transparent 70%);
+    animation: orbitSpin 0s linear infinite;
+  }
+
+  .orbit-2 {
+    width: 220px; height: 220px;
+    background: radial-gradient(ellipse, rgba(180, 210, 200, 0.25) 0%, transparent 70%);
+  }
+
+  .breath-circle-outer {
+    position: absolute;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(2px);
+    transition: transform 0s;
+  }
+
+  .breath-circle-inner {
+    position: absolute;
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.85) 0%, rgba(240,248,240,0.75) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0s;
+    box-shadow: 0 4px 32px rgba(100, 150, 100, 0.12);
+  }
+
+  .circle-count {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--text-mid);
+    line-height: 1;
+    opacity: 0.75;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Animations for breathing */
+  @keyframes inhaleAnim {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.35); }
+  }
+
+  @keyframes exhaleAnim {
+    0% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes holdAnim {
+    0%, 100% { transform: scale(1.35); }
+  }
+
+  .breathing-inhale .breath-circle-outer,
+  .breathing-inhale .breath-circle-inner,
+  .breathing-inhale .orbit-2 {
+    animation: inhaleAnim var(--inhale-dur) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .breathing-exhale .breath-circle-outer,
+  .breathing-exhale .breath-circle-inner,
+  .breathing-exhale .orbit-2 {
+    animation: exhaleAnim var(--exhale-dur) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .breathing-hold .breath-circle-outer,
+  .breathing-hold .breath-circle-inner,
+  .breathing-hold .orbit-2 {
+    animation: holdAnim var(--hold-dur) ease forwards;
+  }
+
+  /* Hint text below circle */
+  .hint-text {
+    margin-top: 36px;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    min-height: 18px;
+    transition: opacity 0.8s ease;
+  }
+
+  /* Progress dots */
+  .cycle-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 48px;
+  }
+
+  .dot {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(138, 170, 140, 0.3);
+    transition: background 0.4s ease, transform 0.4s ease;
+  }
+
+  .dot.active {
+    background: rgba(90, 112, 96, 0.5);
+    transform: scale(1.5);
+  }
+
+  .dot.done {
+    background: rgba(90, 112, 96, 0.45);
+    transform: scale(1);
+  }
+
+  .quote-overlay.final .quote-text {
+    font-size: clamp(24px, 5vw, 32px);
+    opacity: 1;
+    color: var(--text-deep);
+    letter-spacing: 0.06em;
+  }
+  .quote-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.5s ease;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .quote-overlay.visible {
+    opacity: 1;
+  }
+
+  .quote-line {
+    width: 24px;
+    height: 1px;
+    background: rgba(90, 112, 96, 0.2);
+    margin: 0 auto 28px;
+  }
+
+  .quote-text {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(20px, 4vw, 26px);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-mid);
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+    max-width: 380px;
+    opacity: 0.85;
+  }
+
+  .quote-attr {
+    margin-top: 20px;
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    opacity: 0.5;
+  }
+
+  /* ========================
+     AMBIENT SOUND (Web Audio)
+  ======================== */
+  .sound-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text-soft);
+  }
+
+  .sound-indicator.visible { opacity: 1; }
+
+  .sound-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .wave-bar {
+    width: 2px;
+    background: var(--text-soft);
+    border-radius: 1px;
+    animation: waveBounce 1.2s ease-in-out infinite;
+  }
+
+  .wave-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+  .wave-bar:nth-child(2) { height: 10px; animation-delay: 0.15s; }
+  .wave-bar:nth-child(3) { height: 8px; animation-delay: 0.3s; }
+  .wave-bar:nth-child(4) { height: 12px; animation-delay: 0.1s; }
+  .wave-bar:nth-child(5) { height: 6px; animation-delay: 0.25s; }
+
+  @keyframes waveBounce {
+    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+
+  /* Shared animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="bg-layer" id="bgLayer"></div>
+  <div class="ground-glow"></div>
+
+  <!-- HOME SCREEN -->
+  <div class="home-screen" id="homeScreen">
+    <div class="figure-container">
+      <div class="aura-ring"></div>
+      <div class="aura-ring"></div>
+      <svg class="figure-svg" viewBox="0 0 130 175" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ushnisha (sacred topknot) -->
+        <ellipse cx="65" cy="8" rx="8" ry="9" fill="#6b9070" opacity="0.85"/>
+        <ellipse cx="65" cy="15" rx="11" ry="7" fill="#7a9e7e" opacity="0.8"/>
+        <!-- Head -->
+        <ellipse cx="65" cy="30" rx="17" ry="19" fill="#7a9e7e" opacity="0.78"/>
+        <!-- Face details - serene expression -->
+        <!-- Eyes closed (two gentle arcs) -->
+        <path d="M56 29 Q59 27 62 29" stroke="#5a7a5e" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.6"/>
+        <path d="M68 29 Q71 27 74 29" stroke="#5a7a5e" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.6"/>
+        <!-- Gentle smile -->
+        <path d="M60 36 Q65 39 70 36" stroke="#5a7a5e" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.5"/>
+        <!-- Left elongated earlobe -->
+        <ellipse cx="47" cy="32" rx="4" ry="6" fill="#7a9e7e" opacity="0.65"/>
+        <!-- Right elongated earlobe -->
+        <ellipse cx="83" cy="32" rx="4" ry="6" fill="#7a9e7e" opacity="0.65"/>
+        <!-- Neck -->
+        <rect x="59" y="47" width="12" height="8" rx="3" fill="#7a9e7e" opacity="0.72"/>
+        <!-- Robe / body - draped cloth shape -->
+        <path d="M42 55 C30 65 22 80 20 100 C19 108 24 112 30 110 C33 109 35 106 36 103 L36 110 C36 125 45 135 65 137 C85 135 94 125 94 110 L94 103 C95 106 97 109 100 110 C106 112 111 108 110 100 C108 80 100 65 88 55 C80 48 72 44 65 43 C58 44 50 48 42 55Z" fill="#7a9e7e" opacity="0.72"/>
+        <!-- Robe drape line (left) -->
+        <path d="M52 55 C48 70 46 88 47 105" stroke="#5a7a5e" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+        <!-- Robe drape line (right) -->
+        <path d="M78 55 C82 70 84 88 83 105" stroke="#5a7a5e" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+        <!-- Full lotus legs - wide base -->
+        <path d="M20 105 C18 118 22 130 35 134 C45 137 55 138 65 138 C75 138 85 137 95 134 C108 130 112 118 110 105 Z" fill="#7a9e7e" opacity="0.75"/>
+        <!-- Knee left -->
+        <ellipse cx="24" cy="118" rx="10" ry="7" fill="#7a9e7e" opacity="0.7"/>
+        <!-- Knee right -->
+        <ellipse cx="106" cy="118" rx="10" ry="7" fill="#7a9e7e" opacity="0.7"/>
+        <!-- Foot left peeking -->
+        <ellipse cx="30" cy="132" rx="12" ry="5" fill="#7a9e7e" opacity="0.65"/>
+        <!-- Foot right peeking -->
+        <ellipse cx="100" cy="132" rx="12" ry="5" fill="#7a9e7e" opacity="0.65"/>
+        <!-- Arms resting down to lap -->
+        <path d="M42 62 C36 75 33 90 34 108" stroke="#7a9e7e" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.68"/>
+        <path d="M88 62 C94 75 97 90 96 108" stroke="#7a9e7e" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.68"/>
+        <!-- Dhyana mudra hands in lap - bowl shape -->
+        <path d="M34 108 Q45 118 65 120 Q85 118 96 108 Q90 103 65 104 Q40 103 34 108Z" fill="#6b9070" opacity="0.82"/>
+        <!-- Thumbs touching (triangle) -->
+        <path d="M52 108 Q65 105 78 108 Q65 112 52 108Z" fill="#5a7a5e" opacity="0.4"/>
+        <!-- Golden light in cupped hands (dhyana flame) -->
+        <ellipse cx="65" cy="112" rx="14" ry="6" fill="rgba(212,185,106,0.35)"/>
+        <ellipse cx="65" cy="111" rx="7" ry="4" fill="rgba(212,185,106,0.6)"/>
+        <ellipse cx="65" cy="110" rx="3" ry="2.5" fill="rgba(235,210,130,0.85)"/>
+        <!-- Lotus base petals -->
+        <ellipse cx="65" cy="143" rx="38" ry="10" fill="rgba(160,195,165,0.4)"/>
+        <path d="M27 143 Q35 133 45 138 Q55 131 65 136 Q75 131 85 138 Q95 133 103 143" fill="rgba(160,195,165,0.35)" stroke="rgba(120,165,125,0.4)" stroke-width="0.8"/>
+        <path d="M35 143 Q45 136 55 140 Q65 135 75 140 Q85 136 95 143" fill="rgba(175,210,178,0.3)" stroke="rgba(130,175,135,0.35)" stroke-width="0.8"/>
+        <!-- Ground glow below lotus -->
+        <ellipse cx="65" cy="155" rx="32" ry="6" fill="rgba(212,185,106,0.18)"/>
+      </svg>
+    </div>
+
+    <div class="tagline">A moment to breathe</div>
+
+    <button class="start-btn" onclick="startMeditation()">
+      <span>Begin</span>
+    </button>
+
+    <div class="sound-row">
+      <div class="sound-chip active" onclick="selectSound(this,'on')" data-sound="on">Sound on</div>
+      <div class="sound-chip" onclick="selectSound(this,'off')" data-sound="off">Sound off</div>
+    </div>
+  </div>
+
+  <!-- MEDITATION SCREEN -->
+  <div class="meditation-screen" id="meditationScreen">
+    <button class="close-btn" onclick="endMeditation()" title="End session">✕</button>
+
+    <div class="phase-label" id="phaseLabel">Breathe</div>
+
+    <div class="breath-wrapper" id="breathWrapper">
+      <div class="orbit-glow orbit-1"></div>
+      <div class="orbit-glow orbit-2"></div>
+      <div class="breath-circle-outer"></div>
+      <div class="breath-circle-inner">
+        <div class="circle-count" id="circleCount">—</div>
+      </div>
+    </div>
+
+    <div class="hint-text" id="hintText"></div>
+
+    <div class="cycle-dots" id="cycleDots">
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div class="sound-indicator" id="soundIndicator">
+      <div class="sound-wave">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      <span id="soundLabel">Playing</span>
+    </div>
+  </div>
+
+  <!-- QUOTE OVERLAY -->
+  <div class="quote-overlay" id="quoteOverlay">
+    <div class="quote-line"></div>
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-attr">stillpoint</div>
+  </div>
+</div>
+
+<script>
+  const INHALE = 7, HOLD = 4, EXHALE = 7;
+  const QUOTES = [
+    "Everything will be okay.",
+    "You are doing your best.",
+    "Just breathe.",
+    "This moment is enough.",
+    "You are here. That is everything.",
+    "Let go, softly.",
+    "Peace lives inside you."
+  ];
+
+  const HINTS = {
+    inhale: "draw breath in through your nose",
+    hold: "hold, be still",
+    exhale: "let it leave through your nose"
+  };
+
+  let phase = 'inhale';
+  let countdown = INHALE;
+  let timer = null;
+  let cycleCount = 0;
+  let quoteIndex = 0;
+  let selectedSound = 'on';
+  let audioCtx = null;
+  let soundNodes = [];
+  let isRunning = false;
+
+  const breathWrapper = document.getElementById('breathWrapper');
+  const phaseLabel = document.getElementById('phaseLabel');
+  const circleCount = document.getElementById('circleCount');
+  const hintText = document.getElementById('hintText');
+  const bgLayer = document.getElementById('bgLayer');
+  const soundIndicator = document.getElementById('soundIndicator');
+  const soundLabel = document.getElementById('soundLabel');
+
+  document.documentElement.style.setProperty('--inhale-dur', INHALE + 's');
+  document.documentElement.style.setProperty('--hold-dur', HOLD + 's');
+  document.documentElement.style.setProperty('--exhale-dur', EXHALE + 's');
+
+  function selectSound(el, sound) {
+    document.querySelectorAll('.sound-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selectedSound = sound;
+  }
+
+  function startMeditation() {
+    const home = document.getElementById('homeScreen');
+    const med = document.getElementById('meditationScreen');
+    home.classList.add('hidden');
+    setTimeout(() => {
+      med.classList.add('visible');
+      isRunning = true;
+      if (selectedSound === 'on') {
+        startAmbientSound();
+        soundIndicator.classList.add('visible');
+      }
+      setTimeout(() => beginCycle(), 800);
+    }, 1200);
+  }
+
+  function endMeditation() {
+    isRunning = false;
+    clearTimeout(timer);
+    stopAmbientSound();
+    const home = document.getElementById('homeScreen');
+    const med = document.getElementById('meditationScreen');
+    const quoteOverlay = document.getElementById('quoteOverlay');
+    med.classList.remove('visible');
+    quoteOverlay.classList.remove('visible', 'final');
+    soundIndicator.classList.remove('visible');
+    document.getElementById('cycleDots').style.opacity = '1';
+    document.querySelector('.close-btn').style.opacity = '1';
+    const attr = document.querySelector('.quote-attr');
+    if (attr) attr.style.display = '';
+    const qline = document.querySelector('.quote-line');
+    if (qline) qline.style.display = '';
+    setTimeout(() => {
+      home.classList.remove('hidden');
+      resetBreathWrapper();
+      bgLayer.className = 'bg-layer';
+    }, 1200);
+  }
+
+  function resetBreathWrapper() {
+    breathWrapper.className = 'breath-wrapper';
+    phaseLabel.textContent = 'Breathe';
+    circleCount.textContent = '—';
+    hintText.textContent = '';
+    cycleCount = 0;
+    updateDots(0);
+  }
+
+  function beginCycle() {
+    if (!isRunning) return;
+    phase = 'inhale';
+    countdown = INHALE;
+    setPhaseUI('inhale');
+    runCountdown();
+  }
+
+  function setPhaseUI(p) {
+    breathWrapper.className = 'breath-wrapper';
+    void breathWrapper.offsetWidth;
+
+    const labels = { inhale: 'Inhale', hold: 'Hold', exhale: 'Exhale' };
+    phaseLabel.style.opacity = '0';
+    setTimeout(() => {
+      phaseLabel.textContent = labels[p];
+      phaseLabel.style.opacity = '1';
+    }, 300);
+
+    hintText.style.opacity = '0';
+    setTimeout(() => {
+      hintText.textContent = HINTS[p];
+      hintText.style.opacity = '1';
+    }, 400);
+
+    if (p === 'inhale') {
+      breathWrapper.classList.add('breathing-inhale');
+      bgLayer.className = 'bg-layer';
+    } else if (p === 'hold') {
+      breathWrapper.classList.add('breathing-hold');
+      bgLayer.className = 'bg-layer hold-bg';
+    } else {
+      breathWrapper.classList.add('breathing-exhale');
+      bgLayer.className = 'bg-layer exhale-bg';
+    }
+  }
+
+  function runCountdown() {
+    circleCount.textContent = countdown;
+    if (countdown <= 0) {
+      nextPhase();
+      return;
+    }
+    timer = setTimeout(() => {
+      if (!isRunning) return;
+      countdown--;
+      runCountdown();
+    }, 1000);
+  }
+
+  const TOTAL_SETS = 5;
+
+  function nextPhase() {
+    if (!isRunning) return;
+    if (phase === 'inhale') {
+      phase = 'hold';
+      countdown = HOLD;
+      setPhaseUI('hold');
+      runCountdown();
+    } else if (phase === 'hold') {
+      phase = 'exhale';
+      countdown = EXHALE;
+      setPhaseUI('exhale');
+      runCountdown();
+    } else {
+      cycleCount++;
+      updateDots(cycleCount);
+      if (cycleCount >= TOTAL_SETS) {
+        showFinalMessage();
+      } else {
+        beginCycle();
+      }
+    }
+  }
+
+  function updateDots(completed) {
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === completed % TOTAL_SETS);
+      d.classList.toggle('done', i < completed);
+    });
+  }
+
+  function showFinalMessage() {
+    isRunning = false;
+    stopAmbientSound();
+    const overlay = document.getElementById('quoteOverlay');
+    const text = document.getElementById('quoteText');
+    const attr = document.querySelector('.quote-attr');
+    breathWrapper.style.opacity = '0';
+    phaseLabel.style.opacity = '0';
+    hintText.style.opacity = '0';
+    document.getElementById('cycleDots').style.opacity = '0';
+    document.querySelector('.close-btn').style.opacity = '0';
+
+    text.textContent = 'Everything will be okay.';
+    if (attr) attr.style.display = 'none';
+    document.querySelector('.quote-line').style.display = 'none';
+    overlay.classList.add('visible', 'final');
+
+    setTimeout(() => {
+      document.querySelector('.close-btn').style.opacity = '1';
+    }, 3000);
+  }
+
+  function showQuote() {
+    if (!isRunning) return;
+    const overlay = document.getElementById('quoteOverlay');
+    const text = document.getElementById('quoteText');
+    breathWrapper.style.opacity = '0';
+    phaseLabel.style.opacity = '0';
+    hintText.style.opacity = '0';
+
+    text.textContent = QUOTES[quoteIndex % QUOTES.length];
+    quoteIndex++;
+    overlay.classList.add('visible');
+
+    timer = setTimeout(() => {
+      if (!isRunning) return;
+      overlay.classList.remove('visible');
+      breathWrapper.style.opacity = '1';
+      setTimeout(() => {
+        if (!isRunning) return;
+        phaseLabel.style.opacity = '1';
+        hintText.style.opacity = '1';
+        beginCycle();
+      }, 1200);
+    }, 4000);
+  }
+
+  /* ========================
+     AMBIENT SOUND — Meditation Singing Bowl + Drone
+  ======================== */
+  function startAmbientSound() {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      createMeditationSound();
+    } catch(e) {}
+  }
+
+  function stopAmbientSound() {
+    soundNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+    soundNodes = [];
+    if (audioCtx) { try { audioCtx.close(); } catch(e) {} audioCtx = null; }
+  }
+
+  function createMeditationSound() {
+    if (!audioCtx) return;
+    const master = audioCtx.createGain();
+    master.gain.value = 0;
+    master.connect(audioCtx.destination);
+    master.gain.linearRampToValueAtTime(0.55, audioCtx.currentTime + 4);
+
+    /* --- Layer 1: Deep drone (root tone ~110Hz) --- */
+    const drone = audioCtx.createOscillator();
+    drone.type = 'sine';
+    drone.frequency.value = 110;
+    const droneGain = audioCtx.createGain();
+    droneGain.gain.value = 0.18;
+    const droneFilter = audioCtx.createBiquadFilter();
+    droneFilter.type = 'lowpass';
+    droneFilter.frequency.value = 320;
+    drone.connect(droneFilter);
+    droneFilter.connect(droneGain);
+    droneGain.connect(master);
+    drone.start();
+    soundNodes.push(drone);
+
+    /* --- Layer 2: Harmonic fifth (165Hz) --- */
+    const fifth = audioCtx.createOscillator();
+    fifth.type = 'sine';
+    fifth.frequency.value = 165;
+    const fifthGain = audioCtx.createGain();
+    fifthGain.gain.value = 0.10;
+    fifth.connect(fifthGain);
+    fifthGain.connect(master);
+    fifth.start();
+    soundNodes.push(fifth);
+
+    /* --- Layer 3: Overtone shimmer (220Hz + slight vibrato) --- */
+    const shimmer = audioCtx.createOscillator();
+    shimmer.type = 'sine';
+    shimmer.frequency.value = 220;
+    const vibLfo = audioCtx.createOscillator();
+    vibLfo.type = 'sine';
+    vibLfo.frequency.value = 0.18;
+    const vibDepth = audioCtx.createGain();
+    vibDepth.gain.value = 0.6;
+    vibLfo.connect(vibDepth);
+    vibDepth.connect(shimmer.frequency);
+    const shimmerGain = audioCtx.createGain();
+    shimmerGain.gain.value = 0.07;
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(master);
+    shimmer.start();
+    vibLfo.start();
+    soundNodes.push(shimmer, vibLfo);
+
+    /* --- Layer 4: Singing bowl strike — periodic bell tone --- */
+    function bowlStrike() {
+      if (!audioCtx || soundNodes.length === 0) return;
+      const freq = 432;
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      const harmonic = audioCtx.createOscillator();
+      harmonic.type = 'sine';
+      harmonic.frequency.value = freq * 2.756;
+
+      const env = audioCtx.createGain();
+      env.gain.setValueAtTime(0, audioCtx.currentTime);
+      env.gain.linearRampToValueAtTime(0.22, audioCtx.currentTime + 0.012);
+      env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 6.5);
+
+      const hEnv = audioCtx.createGain();
+      hEnv.gain.setValueAtTime(0, audioCtx.currentTime);
+      hEnv.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.01);
+      hEnv.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.2);
+
+      osc.connect(env); env.connect(master);
+      harmonic.connect(hEnv); hEnv.connect(master);
+      osc.start(); harmonic.start();
+      osc.stop(audioCtx.currentTime + 7);
+      harmonic.stop(audioCtx.currentTime + 3.5);
+
+      setTimeout(bowlStrike, 12000 + Math.random() * 6000);
+    }
+
+    /* --- Layer 5: Soft breath-like pad (filtered noise swell) --- */
+    const bufSec = audioCtx.sampleRate * 3;
+    const buf = audioCtx.createBuffer(1, bufSec, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSec; i++) d[i] = Math.random() * 2 - 1;
+    const pad = audioCtx.createBufferSource();
+    pad.buffer = buf;
+    pad.loop = true;
+    const padFilter = audioCtx.createBiquadFilter();
+    padFilter.type = 'bandpass';
+    padFilter.frequency.value = 280;
+    padFilter.Q.value = 1.2;
+    const padGain = audioCtx.createGain();
+    padGain.gain.value = 0.03;
+    pad.connect(padFilter);
+    padFilter.connect(padGain);
+    padGain.connect(master);
+    pad.start();
+    soundNodes.push(pad);
+
+    /* Gentle swell LFO on master gain — like breathing */
+    const swellLfo = audioCtx.createOscillator();
+    swellLfo.type = 'sine';
+    swellLfo.frequency.value = 0.04;
+    const swellAmt = audioCtx.createGain();
+    swellAmt.gain.value = 0.08;
+    swellLfo.connect(swellAmt);
+    swellAmt.connect(master.gain);
+    swellLfo.start();
+    soundNodes.push(swellLfo);
+
+    setTimeout(bowlStrike, 2000);
+  }
+</script>
+</body>
+</html>
